@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La Ruota della Salute</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ruota Salute">
+<meta name="theme-color" content="#2D6A4F">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%232D6A4F'/%3E%3Ccircle cx='256' cy='256' r='160' fill='none' stroke='%23D8F3DC' stroke-width='20'/%3E%3Ccircle cx='256' cy='256' r='110' fill='none' stroke='%2352B788' stroke-width='16'/%3E%3Ccircle cx='256' cy='256' r='60' fill='none' stroke='%23D8F3DC' stroke-width='12'/%3E%3C/svg%3E">
+<script>
+(function(){
+  const m={name:"La Ruota della Salute",short_name:"Ruota Salute",display:"standalone",background_color:"#F5F0E8",theme_color:"#2D6A4F",start_url:".",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%232D6A4F'/%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml"}]};
+  const b=new Blob([JSON.stringify(m)],{type:'application/manifest+json'});
+  const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);
+  document.head.appendChild(l);
+})();
+</script>
+
+<!-- ============================================================
+     ⚙️  CONFIGURAZIONE — modifica solo questo blocco
+     ============================================================ -->
+<script>
+const CONFIG = {
+  // 🔑 Password unica che dai ai tuoi clienti
+  PASSWORD: "salute2024",
+
+  // 📧 Formspree — già configurato!
+  FORMSPREE_URL: "https://formspree.io/f/mqendbkv"
+};
+</script>
+<!-- ============================================================ -->
+
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --verde:#2D6A4F;--verde-chiaro:#52B788;--verde-pallido:#D8F3DC;
+  --sfondo:#F5F0E8;--carta:#FDFCF9;--testo:#1C1C1A;--testo-muted:#6B6B67;
+  --bordo:#E0D9CC;--arancio:#E07A5F;--radius:16px;--radius-sm:10px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--sfondo);color:var(--testo);min-height:100vh;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-box{background:var(--carta);border:1px solid var(--bordo);border-radius:var(--radius);padding:48px 40px;width:100%;max-width:420px;text-align:center;}
+.login-logo{font-family:'Lora',serif;font-size:26px;color:var(--verde);margin-bottom:6px;}
+.login-sub{font-size:13px;color:var(--testo-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:36px;}
+.login-label{display:block;text-align:left;font-size:13px;color:var(--testo-muted);margin-bottom:6px;}
+.login-input{width:100%;font-family:'DM Sans',sans-serif;font-size:18px;color:var(--testo);background:var(--sfondo);border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:14px 16px;outline:none;transition:border-color .2s;margin-bottom:16px;text-align:center;letter-spacing:.15em;}
+.login-input:focus{border-color:var(--verde);}
+.login-error{font-size:13px;color:#c0392b;margin-bottom:12px;min-height:18px;}
+
+/* HEADER */
+header{background:var(--carta);border-bottom:1px solid var(--bordo);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Lora',serif;font-size:20px;font-weight:500;color:var(--verde);}
+.logo span{display:block;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:300;color:var(--testo-muted);letter-spacing:.05em;text-transform:uppercase;}
+.btn-reset{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--testo-muted);background:none;border:1px solid var(--bordo);border-radius:8px;padding:8px 16px;cursor:pointer;transition:all .2s;}
+.btn-reset:hover{background:var(--sfondo);color:var(--testo);}
+
+/* STEPPER */
+.stepper{display:flex;align-items:center;justify-content:center;padding:28px 32px 0;max-width:680px;margin:0 auto;}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative;}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:18px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--bordo);z-index:0;}
+.step-item.completed:not(:last-child)::after{background:var(--verde);}
+.step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--bordo);background:var(--carta);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--testo-muted);position:relative;z-index:1;transition:all .3s;}
+.step-item.active .step-circle{border-color:var(--verde);background:var(--verde);color:white;}
+.step-item.completed .step-circle{border-color:var(--verde);background:var(--verde);color:white;}
+.step-label{font-size:12px;color:var(--testo-muted);}
+.step-item.active .step-label{color:var(--verde);font-weight:500;}
+
+/* CONTAINER */
+.container{max-width:680px;margin:0 auto;padding:40px 24px 80px;}
+.screen{display:none;}.screen.active{display:block;}
+#app{display:none;}
+h1{font-family:'Lora',serif;font-size:28px;font-weight:500;line-height:1.3;margin-bottom:10px;}
+.subtitle{font-size:15px;color:var(--testo-muted);margin-bottom:36px;line-height:1.6;}
+.card{background:var(--carta);border:1px solid var(--bordo);border-radius:var(--radius);padding:24px;margin-bottom:16px;}
+.intro-box{background:var(--verde-pallido);border-left:3px solid var(--verde);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin-bottom:32px;font-size:15px;color:var(--verde);line-height:1.6;}
+
+/* STEP 1 */
+.area-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.area-num{width:28px;height:28px;border-radius:50%;background:var(--verde-pallido);color:var(--verde);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.area-input{flex:1;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--testo);background:var(--sfondo);border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:12px 16px;outline:none;transition:border-color .2s;}
+.area-input:focus{border-color:var(--verde);}
+.area-input::placeholder{color:#aaa;}
+
+/* STEP 2 */
+.slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.slider-name{font-size:15px;font-weight:500;}
+.slider-value{font-size:20px;font-weight:500;color:var(--verde);min-width:40px;text-align:right;}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--bordo);outline:none;margin:10px 0;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--verde);cursor:pointer;border:3px solid white;box-shadow:0 0 0 1px var(--verde);transition:transform .15s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+.slider-extremes{display:flex;justify-content:space-between;font-size:12px;color:#aaa;}
+.avviso{background:#FFF8ED;border:1px solid #F5C97C;border-radius:var(--radius-sm);padding:12px 16px;font-size:14px;color:#8A5F00;margin-bottom:20px;}
+
+/* STEP 3 */
+.camb-area-title{font-size:15px;font-weight:500;color:var(--verde);margin-bottom:4px;}
+.camb-domanda{font-size:14px;color:var(--testo-muted);margin-bottom:12px;line-height:1.5;}
+.camb-domanda strong{color:var(--testo);font-weight:500;}
+textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--testo);background:var(--sfondo);border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:12px 16px;outline:none;resize:vertical;min-height:80px;transition:border-color .2s;line-height:1.6;}
+textarea:focus{border-color:var(--verde);}
+textarea::placeholder{color:#bbb;}
+.camb-slider-label{font-size:13px;color:var(--testo-muted);margin-top:14px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+.score-badge{font-size:14px;font-weight:500;color:var(--testo);}
+.score-badge .arr{color:var(--verde);}
+.score-badge .new{color:var(--verde);font-size:16px;}
+
+/* STEP 4 */
+.radar-container{position:relative;width:100%;max-width:400px;margin:0 auto 32px;}
+.riepilogo-aree{list-style:none;}
+.riepilogo-area{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--bordo);}
+.riepilogo-area:last-child{border-bottom:none;}
+.riepilogo-nome{font-size:15px;font-weight:500;}
+.riepilogo-sottotitolo{font-size:13px;color:var(--testo-muted);margin-top:2px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.riepilogo-scores{display:flex;align-items:center;gap:8px;}
+.score-attuale{color:var(--arancio);font-weight:500;font-size:16px;}
+.score-futuro{background:var(--verde-pallido);color:var(--verde);font-weight:500;font-size:16px;padding:2px 8px;border-radius:6px;}
+.score-delta{font-size:13px;color:var(--verde);}
+.domanda-potente{background:var(--verde);border-radius:var(--radius);padding:28px;color:white;margin-top:24px;}
+.domanda-potente .etichetta{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:12px;}
+.domanda-potente p{font-family:'Lora',serif;font-size:20px;line-height:1.5;font-style:italic;}
+
+/* BOTTONI */
+.btn-primary{display:block;width:100%;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;color:white;background:var(--verde);border:none;border-radius:var(--radius-sm);padding:16px;cursor:pointer;transition:background .2s,transform .1s;margin-top:8px;}
+.btn-primary:hover{background:#235F45;}
+.btn-primary:active{transform:scale(.99);}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed;}
+.btn-secondary{display:block;width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--verde);background:var(--verde-pallido);border:none;border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .2s;margin-top:12px;}
+.btn-secondary:hover{background:#C0E7CC;}
+.btn-outline{display:block;width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--testo-muted);background:none;border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .2s;margin-top:12px;}
+.btn-outline:hover{border-color:var(--testo-muted);color:var(--testo);}
+.btn-back{display:block;text-align:center;font-size:14px;color:var(--testo-muted);background:none;border:none;cursor:pointer;margin-top:14px;font-family:'DM Sans',sans-serif;text-decoration:underline;}
+.btn-back:hover{color:var(--testo);}
+
+/* STEP 2 — PRIORITA DRAG DROP */
+.drag-list{list-style:none;margin-bottom:8px;}
+.drag-card{display:flex;align-items:center;gap:14px;background:var(--carta);border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;cursor:grab;transition:box-shadow .2s,transform .2s;user-select:none;}
+.drag-card:active{cursor:grabbing;}
+.drag-card.dragging{opacity:.4;transform:scale(.98);}
+.drag-card.drag-over{border-color:var(--verde);box-shadow:0 0 0 2px var(--verde-pallido);}
+.drag-handle{color:var(--bordo);font-size:18px;flex-shrink:0;cursor:grab;}
+.drag-rank{width:28px;height:28px;border-radius:50%;background:var(--verde);color:white;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.drag-nome{flex:1;font-size:15px;font-weight:500;color:var(--testo);}
+.drag-hint{font-size:12px;color:var(--testo-muted);margin-bottom:24px;}
+
+/* STEP 5 — PRIMA AZIONE */
+.azione-card{background:var(--carta);border:1px solid var(--bordo);border-radius:var(--radius);padding:22px;margin-bottom:14px;}
+.azione-nome{font-size:13px;font-weight:500;color:var(--testo-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.azione-cambiamento{font-size:15px;color:var(--testo);line-height:1.6;padding:12px 14px;background:var(--sfondo);border-radius:var(--radius-sm);margin-bottom:14px;border-left:3px solid var(--verde-chiaro);}
+.azione-btn{display:flex;align-items:center;gap:10px;width:100%;background:none;border:1.5px solid var(--bordo);border-radius:var(--radius-sm);padding:12px 16px;cursor:pointer;text-align:left;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--testo-muted);transition:all .2s;margin-bottom:8px;}
+.azione-btn:hover{border-color:var(--verde);color:var(--testo);}
+.azione-btn.selected{border-color:var(--verde);background:var(--verde-pallido);color:var(--verde);font-weight:500;}
+.azione-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--bordo);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;}
+.azione-btn.selected .azione-check{background:var(--verde);border-color:var(--verde);color:white;}
+
+/* RISULTATO — impegni */
+.impegno-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bordo);}
+.impegno-item:last-child{border-bottom:none;}
+.impegno-num{width:24px;height:24px;border-radius:50%;background:var(--verde);color:white;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.impegno-body{flex:1;}
+.impegno-area{font-size:12px;color:var(--testo-muted);margin-bottom:2px;}
+.impegno-testo{font-size:14px;color:var(--testo);line-height:1.5;}
+
+/* STEP 6 — IMPEDIMENTI */
+.imp-card{background:var(--carta);border:1px solid var(--bordo);border-radius:var(--radius);padding:22px;margin-bottom:14px;}
+.imp-azione-box{font-size:14px;color:var(--testo);line-height:1.6;padding:12px 14px;background:var(--sfondo);border-radius:var(--radius-sm);margin-bottom:14px;border-left:3px solid var(--arancio);}
+.imp-label{font-size:13px;font-weight:500;color:var(--testo-muted);margin-bottom:8px;}
+
+/* MODAL EMAIL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999;padding:24px;}
+.modal-overlay.hidden{display:none;}
+.modal-box{background:var(--carta);border-radius:var(--radius);padding:36px 32px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;}
+.modal-box h2{font-family:'Lora',serif;font-size:22px;margin-bottom:8px;}
+.modal-box p{font-size:14px;color:var(--testo-muted);margin-bottom:24px;line-height:1.6;}
+.modal-field{margin-bottom:14px;}
+.modal-field label{display:block;font-size:13px;color:var(--testo-muted);margin-bottom:6px;}
+.modal-field input{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--testo);background:var(--sfondo);border:1px solid var(--bordo);border-radius:var(--radius-sm);padding:12px 16px;outline:none;transition:border-color .2s;}
+.modal-field input:focus{border-color:var(--verde);}
+.modal-stato{font-size:14px;margin-top:10px;min-height:20px;text-align:center;}
+.modal-stato.ok{color:var(--verde);}
+.modal-stato.err{color:#c0392b;}
+.modal-close{display:block;text-align:center;font-size:13px;color:var(--testo-muted);cursor:pointer;margin-top:14px;text-decoration:underline;background:none;border:none;font-family:'DM Sans',sans-serif;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">La Ruota della Salute</div>
+    <div class="login-sub">Self Coaching</div>
+    <label class="login-label">Il tuo nome</label>
+    <input type="text" class="login-input" id="login-nome" placeholder="Scrivi il tuo nome..."
+           style="letter-spacing:normal;margin-bottom:12px"
+           onkeydown="if(event.key==='Enter')document.getElementById('login-input').focus()">
+    <label class="login-label">Codice di accesso</label>
+    <input type="password" class="login-input" id="login-input" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter')checkLogin()">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-primary" onclick="checkLogin()">Accedi →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="logo">La Ruota della Salute<span>Self Coaching</span></div>
+    <button class="btn-reset" onclick="ricomincia()">Ricomincia da zero</button>
+  </header>
+
+  <div class="stepper">
+    <div class="step-item active" id="step-dot-1"><div class="step-circle" id="step-circle-1">1</div><div class="step-label">Aree</div></div>
+    <div class="step-item" id="step-dot-2"><div class="step-circle" id="step-circle-2">2</div><div class="step-label">Priorità</div></div>
+    <div class="step-item" id="step-dot-3"><div class="step-circle" id="step-circle-3">3</div><div class="step-label">Punteggi</div></div>
+    <div class="step-item" id="step-dot-4"><div class="step-circle" id="step-circle-4">4</div><div class="step-label">Cambiamenti</div></div>
+    <div class="step-item" id="step-dot-5"><div class="step-circle" id="step-circle-5">5</div><div class="step-label">Azioni</div></div>
+    <div class="step-item" id="step-dot-6"><div class="step-circle" id="step-circle-6">6</div><div class="step-label">Ostacoli</div></div>
+    <div class="step-item" id="step-dot-7"><div class="step-circle" id="step-circle-7">7</div><div class="step-label">Risultato</div></div>
+  </div>
+
+  <div class="container">
+
+    <!-- STEP 1 -->
+    <div class="screen active" id="screen-1">
+      <div class="intro-box">Questa esperienza ti aiuta a vedere con più chiarezza dove sei oggi e cosa vorresti cambiare per stare meglio.</div>
+      <h1 id="titolo-step1">Se la tua salute fosse un libro, quali sarebbero i capitoli principali?</h1>
+      <p class="subtitle">Inserisci da un minimo di 3 a un massimo di 15 aree importanti della tua salute.</p>
+      <div id="aree-lista"></div>
+      <div id="avviso-aree" class="avviso" style="display:none;">Inserisci almeno 3 aree per continuare.</div>
+      <button class="btn-primary" onclick="vaiAPriorita()">Continua →</button>
+    </div>
+
+    <!-- STEP 2 — PRIORITA -->
+    <div class="screen" id="screen-2">
+      <h1 id="titolo-step2">Come vorresti che fossero disposti i capitoli?</h1>
+      <p class="subtitle">Trascina le aree per metterle in sequenza, dal capitolo più importante per te al meno importante.</p>
+      <p class="drag-hint">☰ Tieni premuto e trascina per riordinare</p>
+      <ul class="drag-list" id="drag-lista"></ul>
+      <button class="btn-primary" onclick="vaiAPunteggi()">Continua →</button>
+      <button class="btn-back" onclick="vaiAStep(1)">← Torna indietro</button>
+    </div>
+
+    <!-- STEP 3 — PUNTEGGI -->
+    <div class="screen" id="screen-3">
+      <h1 id="titolo-step3">Che punteggio dai oggi a ciascuna area?</h1>
+      <p class="subtitle">Muovi ogni slider per esprimere la tua valutazione. Non ci sono risposte giuste o sbagliate.</p>
+      <div id="punteggi-lista"></div>
+      <div id="avviso-punteggi" class="avviso" style="display:none;"></div>
+      <button class="btn-primary" onclick="vaiACambiamenti()">Continua →</button>
+      <button class="btn-back" onclick="vaiAStep(2)">← Torna indietro</button>
+    </div>
+
+    <!-- STEP 4 — CAMBIAMENTI -->
+    <div class="screen" id="screen-4">
+      <h1 id="titolo-step4">Quale cambiamento sarebbe necessario?</h1>
+      <p class="subtitle">Scrivi il cambiamento in modo concreto, pratico e osservabile.</p>
+      <div id="cambiamenti-lista"></div>
+      <button class="btn-primary" onclick="vaiAzioni()">Continua →</button>
+      <button class="btn-back" onclick="vaiAStep(3)">← Torna indietro</button>
+    </div>
+
+    <!-- STEP 5 — PRIMA AZIONE -->
+    <div class="screen" id="screen-5">
+      <h1 id="titolo-step5">Da dove vuoi iniziare?</h1>
+      <p class="subtitle">Scegli almeno un cambiamento con cui partire subito. Questa è la tua prima azione concreta.</p>
+      <div id="azioni-lista"></div>
+      <div id="avviso-azioni" class="avviso" style="display:none;">Seleziona almeno un cambiamento per continuare.</div>
+      <button class="btn-primary" onclick="vaiAImpedimenti()">Continua →</button>
+      <button class="btn-back" onclick="vaiAStep(4)">← Torna indietro</button>
+    </div>
+
+    <!-- STEP 6 — IMPEDIMENTI -->
+    <div class="screen" id="screen-6">
+      <h1 id="titolo-step6">E cosa ti sta impedendo di farlo?</h1>
+      <p class="subtitle">Per ciascuna azione che hai scelto, prova a essere onesto con te stesso su cosa ti blocca davvero.</p>
+      <div id="impedimenti-lista"></div>
+      <button class="btn-primary" onclick="vaiARisultato()">Continua →</button>
+      <button class="btn-back" onclick="vaiAStep(5)">← Torna indietro</button>
+    </div>
+
+    <!-- STEP 7 — RISULTATO -->
+    <div class="screen" id="screen-7">
+      <h1 id="titolo-step7">La tua Ruota della Salute</h1>
+      <p class="subtitle">Ecco una fotografia di come percepisci la tua salute oggi.</p>
+
+      <div class="card">
+        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:13px;color:var(--testo-muted)">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;background:var(--verde);display:inline-block"></span>Situazione attuale</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;border:2px dashed var(--verde-chiaro);display:inline-block"></span>Con il cambiamento</span>
+        </div>
+        <div class="radar-container">
+          <canvas id="radarChart" role="img" aria-label="Grafico radar della Ruota della Salute"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;color:var(--testo-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Riepilogo aree</div>
+        <ul class="riepilogo-aree" id="riepilogo-lista"></ul>
+      </div>
+
+      <div class="card" id="impegni-card">
+        <div style="font-size:13px;font-weight:500;color:var(--verde);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Le tue prime azioni</div>
+        <div id="impegni-lista"></div>
+      </div>
+
+      <div class="card" id="impedimenti-card">
+        <div style="font-size:13px;font-weight:500;color:var(--arancio);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Cosa ti sta impedendo</div>
+        <div id="impedimenti-riepilogo"></div>
+      </div>
+
+      <div class="domanda-potente">
+        <div class="etichetta">La domanda potente</div>
+        <p>Visto che sai già i cambiamenti che dovresti fare in ogni area, perché non li hai fatti fino adesso?</p>
+      </div>
+
+      <div style="margin-top:24px">
+        <button class="btn-primary" onclick="scaricaPDF()">⬇ Scarica il tuo report PDF</button>
+        <button class="btn-secondary" onclick="apriModalEmail()">✉ Invia feedback al coach</button>
+        <button class="btn-outline" onclick="ricomincia()">↺ Ricomincia da zero</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL EMAIL -->
+<div class="modal-overlay hidden" id="modal-email">
+  <div class="modal-box">
+    <h2>Invia feedback al coach</h2>
+    <p>Condividi una riflessione, una domanda o un pensiero emerso durante questa esperienza.</p>
+    <div class="modal-field">
+      <label>La tua email (per ricevere risposta)</label>
+      <input type="email" id="email-mittente" placeholder="nome@email.com">
+    </div>
+    <div class="modal-field">
+      <label>Il tuo nome</label>
+      <input type="text" id="email-nome" placeholder="Il tuo nome">
+    </div>
+    <div class="modal-field">
+      <label>Il tuo messaggio</label>
+      <textarea id="email-messaggio" placeholder="Scrivi qui la tua riflessione..." style="min-height:100px"></textarea>
+    </div>
+    <button class="btn-primary" onclick="inviaEmail()" id="btn-invia-email">Invia messaggio →</button>
+    <div class="modal-stato" id="modal-stato"></div>
+    <button class="modal-close" onclick="chiudiModalEmail()">Chiudi</button>
+  </div>
+</div>
+
+<script>
+// ===== LOGIN =====
+function aggiornaIntestazioni(){
+  const n = nomeUtente ? nomeUtente+', ' : '';
+  const titoli = {
+    'titolo-step1': `Benvenuto ${nomeUtente}! Se la tua salute fosse un libro, quali sarebbero i capitoli principali?`,
+    'titolo-step2': `${n}come vorresti che fossero disposti i capitoli?`,
+    'titolo-step3': `${n}che punteggio dai oggi a ciascuna area?`,
+    'titolo-step4': `${n}quale cambiamento sarebbe necessario?`,
+    'titolo-step5': `${n}da dove vuoi iniziare?`,
+    'titolo-step6': `${n}e cosa ti sta impedendo di farlo?`,
+    'titolo-step7': `La tua Ruota della Salute, ${nomeUtente}`
+  };
+  Object.entries(titoli).forEach(([id,testo])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=testo;
+  });
+}
+
+function checkLogin() {
+  const val = document.getElementById('login-input').value;
+  const nome = document.getElementById('login-nome').value.trim();
+  if(!nome){
+    document.getElementById('login-error').textContent = 'Inserisci il tuo nome per continuare.';
+    document.getElementById('login-nome').focus();
+    return;
+  }
+  if (val === CONFIG.PASSWORD) {
+    nomeUtente = nome;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    aggiornaIntestazioni();
+    initAree();
+  } else {
+    document.getElementById('login-error').textContent = 'Codice non corretto. Riprova.';
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-input').focus();
+  }
+}
+
+// ===== STATO =====
+let aree=[], punteggi={}, punteggiMossi={}, cambiamenti={}, miglioramenti={}, azioniScelte={}, impedimenti={}, radarChart=null, nomeUtente='';
+const MAX_AREE=15, MIN_AREE=3;
+
+// ===== STEP 1 =====
+function initAree() {
+  const lista = document.getElementById('aree-lista');
+  lista.innerHTML = '';
+  for (let i=1; i<=MAX_AREE; i++) {
+    const row = document.createElement('div');
+    row.className = 'area-row';
+    row.innerHTML = `<div class="area-num">${i}</div>
+      <input type="text" class="area-input" id="area-${i}" placeholder="Scrivi la tua area..." maxlength="40" oninput="document.getElementById('avviso-aree').style.display='none'">`;
+    lista.appendChild(row);
+  }
+}
+
+function leggiAree() {
+  const r=[];
+  for(let i=1;i<=MAX_AREE;i++){
+    const v=(document.getElementById(`area-${i}`)?.value||'').trim();
+    if(v) r.push({id:i,nome:v});
+  }
+  return r;
+}
+
+function vaiAPriorita() {
+  aree=leggiAree();
+  if(aree.length<MIN_AREE){document.getElementById('avviso-aree').style.display='block';return;}
+  buildDragList(); vaiAStep(2);
+}
+
+function buildDragList(){
+  const lista=document.getElementById('drag-lista');
+  lista.innerHTML='';
+  aree.forEach((area,idx)=>{
+    const li=document.createElement('li');
+    li.className='drag-card';
+    li.draggable=true;
+    li.dataset.id=area.id;
+    li.innerHTML=`<span class="drag-handle">⠿</span><span class="drag-rank">${idx+1}</span><span class="drag-nome">${area.nome}</span>`;
+    lista.appendChild(li);
+  });
+  initDragDrop();
+}
+
+function initDragDrop(){
+  const lista=document.getElementById('drag-lista');
+  let dragged=null;
+  lista.querySelectorAll('.drag-card').forEach(card=>{
+    card.addEventListener('dragstart',()=>{dragged=card;setTimeout(()=>card.classList.add('dragging'),0);});
+    card.addEventListener('dragend',()=>{card.classList.remove('dragging');lista.querySelectorAll('.drag-card').forEach(c=>c.classList.remove('drag-over'));updateRanks();});
+    card.addEventListener('dragover',e=>{e.preventDefault();if(card!==dragged){card.classList.add('drag-over');}});
+    card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');if(dragged&&card!==dragged){const cards=[...lista.querySelectorAll('.drag-card')];const fromIdx=cards.indexOf(dragged),toIdx=cards.indexOf(card);if(fromIdx<toIdx)lista.insertBefore(dragged,card.nextSibling);else lista.insertBefore(dragged,card);}});
+    // touch support
+    card.addEventListener('touchstart',e=>{dragged=card;card.classList.add('dragging');},{passive:true});
+    card.addEventListener('touchend',()=>{card.classList.remove('dragging');updateRanks();});
+    card.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      const t=e.touches[0];
+      const el=document.elementFromPoint(t.clientX,t.clientY)?.closest('.drag-card');
+      if(el&&el!==dragged){lista.querySelectorAll('.drag-card').forEach(c=>c.classList.remove('drag-over'));el.classList.add('drag-over');lista.insertBefore(dragged,el);}
+    },{passive:false});
+  });
+}
+
+function updateRanks(){
+  const cards=document.querySelectorAll('#drag-lista .drag-card');
+  const nuoveAree=[];
+  cards.forEach((card,idx)=>{
+    card.querySelector('.drag-rank').textContent=idx+1;
+    const id=parseInt(card.dataset.id);
+    const area=aree.find(a=>a.id===id);
+    if(area) nuoveAree.push(area);
+  });
+  aree=nuoveAree;
+}
+
+function vaiAPunteggi() {
+  updateRanks();
+  buildPunteggi(); vaiAStep(3);
+}
+
+// ===== STEP 2 =====
+function buildPunteggi() {
+  const lista=document.getElementById('punteggi-lista');
+  lista.innerHTML='';
+  aree.forEach(area=>{
+    if(!(area.id in punteggi)) punteggi[area.id]=50;
+    if(!(area.id in punteggiMossi)) punteggiMossi[area.id]=false;
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="slider-label"><span class="slider-name">${area.nome}</span><span class="slider-value" id="val-${area.id}">${punteggi[area.id]}</span></div>
+      <input type="range" min="0" max="100" step="1" value="${punteggi[area.id]}" oninput="aggiornaPunteggio(${area.id},this.value)">
+      <div class="slider-extremes"><span>0 – sto malissimo</span><span>100 – sto benissimo</span></div>`;
+    lista.appendChild(card);
+  });
+}
+
+function aggiornaPunteggio(id,val){
+  punteggi[id]=parseInt(val); punteggiMossi[id]=true;
+  document.getElementById(`val-${id}`).textContent=val;
+  document.getElementById('avviso-punteggi').style.display='none';
+}
+
+function vaiACambiamenti(){
+  const nm=aree.filter(a=>!punteggiMossi[a.id]);
+  if(nm.length>0){
+    const av=document.getElementById('avviso-punteggi');
+    av.style.display='block';
+    av.textContent=`Muovi lo slider per ${nm.length} ${nm.length===1?'area ancora da valutare':'aree ancora da valutare'} prima di continuare.`;
+    return;
+  }
+  buildCambiamenti(); vaiAStep(4);
+}
+
+// ===== STEP 3 =====
+function buildCambiamenti(){
+  const lista=document.getElementById('cambiamenti-lista');
+  lista.innerHTML='';
+  aree.forEach(area=>{
+    if(!(area.id in miglioramenti)) miglioramenti[area.id]=20;
+    const att=punteggi[area.id], mig=miglioramenti[area.id], fut=Math.min(100,att+mig);
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="camb-area-title">${area.nome}</div>
+      <div class="camb-domanda">Per aumentare il punteggio di <strong>${area.nome}</strong>, che oggi è <strong>${att}</strong>, quale cambiamento dovresti apportare nella tua vita?</div>
+      <textarea id="camb-${area.id}" placeholder="Descrivi il cambiamento concreto che faresti..." oninput="cambiamenti[${area.id}]=this.value">${cambiamenti[area.id]||''}</textarea>
+      <div class="camb-slider-label">
+        <span>Di quanto miglioreresti quest'area con questo cambiamento?</span>
+        <span class="score-badge">${att} <span class="arr">→</span> <span class="new" id="futuro-${area.id}">${fut}</span></span>
+      </div>
+      <input type="range" min="0" max="${100-att}" step="1" value="${mig}" id="mig-${area.id}" oninput="aggiornaMiglioramento(${area.id},this.value)">
+      <div class="slider-extremes"><span>Nessun miglioramento</span><span>+${100-att} punti</span></div>`;
+    lista.appendChild(card);
+  });
+}
+
+function aggiornaMiglioramento(id,val){
+  miglioramenti[id]=parseInt(val);
+  document.getElementById(`futuro-${id}`).textContent=Math.min(100,punteggi[id]+parseInt(val));
+}
+
+// ===== STEP 4 → 5 =====
+function vaiAzioni(){
+  aree.forEach(area=>{
+    const t=document.getElementById(`camb-${area.id}`);
+    if(t) cambiamenti[area.id]=t.value.trim();
+    const m=document.getElementById(`mig-${area.id}`);
+    if(m) miglioramenti[area.id]=parseInt(m.value);
+  });
+  buildAzioni(); vaiAStep(5);
+}
+
+function buildAzioni(){
+  const lista=document.getElementById('azioni-lista');
+  lista.innerHTML='';
+  aree.forEach(area=>{
+    const camb=cambiamenti[area.id]||'';
+    if(!camb) return;
+    const div=document.createElement('div');
+    div.className='azione-card';
+    const selezionata=azioniScelte[area.id]===true;
+    div.innerHTML=`
+      <div class="azione-nome">${area.nome}</div>
+      <div class="azione-cambiamento">${camb}</div>
+      <button class="azione-btn${selezionata?' selected':''}" onclick="toggleAzione(${area.id},this)">
+        <span class="azione-check">${selezionata?'✓':''}</span>
+        <span>${selezionata?'Selezionata come prima azione':'Inizia da qui'}</span>
+      </button>`;
+    lista.appendChild(div);
+  });
+}
+
+function toggleAzione(id, btn){
+  const sel=!btn.classList.contains('selected');
+  azioniScelte[id]=sel;
+  btn.classList.toggle('selected',sel);
+  btn.querySelector('.azione-check').textContent=sel?'✓':'';
+  btn.querySelector('span:last-child').textContent=sel?'Selezionata come prima azione':'Inizia da qui';
+  document.getElementById('avviso-azioni').style.display='none';
+}
+
+// ===== STEP 6 =====
+function vaiAImpedimenti(){
+  const almeno=Object.values(azioniScelte).some(v=>v===true);
+  if(!almeno){document.getElementById('avviso-azioni').style.display='block';return;}
+  buildImpedimenti(); vaiAStep(6);
+}
+
+function buildImpedimenti(){
+  const lista=document.getElementById('impedimenti-lista');
+  lista.innerHTML='';
+  aree.filter(a=>azioniScelte[a.id]===true).forEach(area=>{
+    const div=document.createElement('div');
+    div.className='imp-card';
+    div.innerHTML=`
+      <div style="font-size:13px;font-weight:500;color:var(--arancio);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">${area.nome}</div>
+      <div class="imp-azione-box">${cambiamenti[area.id]||''}</div>
+      <div class="imp-label">Cosa ti sta impedendo di fare questo cambiamento?</div>
+      <textarea id="imp-${area.id}" placeholder="Sii onesto con te stesso..." oninput="impedimenti[${area.id}]=this.value">${impedimenti[area.id]||''}</textarea>`;
+    lista.appendChild(div);
+  });
+}
+
+function vaiARisultato(){
+  aree.filter(a=>azioniScelte[a.id]===true).forEach(area=>{
+    const t=document.getElementById(`imp-${area.id}`);
+    if(t) impedimenti[area.id]=t.value.trim();
+  });
+  buildRisultato(); vaiAStep(7);
+}
+
+function buildRisultato(){
+  const lista=document.getElementById('riepilogo-lista');
+  lista.innerHTML='';
+  aree.forEach(area=>{
+    const att=punteggi[area.id], fut=Math.min(100,att+(miglioramenti[area.id]||0));
+    const li=document.createElement('li');
+    li.className='riepilogo-area';
+    li.innerHTML=`
+      <div>
+        <div class="riepilogo-nome">${area.nome}</div>
+        <div class="riepilogo-sottotitolo">${cambiamenti[area.id]||'—'}</div>
+      </div>
+      <div class="riepilogo-scores">
+        <span class="score-attuale">${att}</span>
+        <span style="color:var(--testo-muted)">→</span>
+        <span class="score-futuro">${fut}</span>
+        <span class="score-delta">+${fut-att}</span>
+      </div>`;
+    lista.appendChild(li);
+  });
+
+  // Impegni
+  const impLista=document.getElementById('impegni-lista');
+  impLista.innerHTML='';
+  let impNum=0;
+  aree.forEach(area=>{
+    if(!azioniScelte[area.id]) return;
+    impNum++;
+    const div=document.createElement('div');
+    div.className='impegno-item';
+    div.innerHTML=`<div class="impegno-num">${impNum}</div><div class="impegno-body"><div class="impegno-area">${area.nome}</div><div class="impegno-testo">${cambiamenti[area.id]||''}</div></div>`;
+    impLista.appendChild(div);
+  });
+
+  // Impedimenti riepilogo
+  const impedRiep=document.getElementById('impedimenti-riepilogo');
+  impedRiep.innerHTML='';
+  aree.forEach(area=>{
+    if(!azioniScelte[area.id]) return;
+    const testo=impedimenti[area.id]||'—';
+    const div=document.createElement('div');
+    div.className='impegno-item';
+    div.innerHTML=`<div class="impegno-num" style="background:var(--arancio)">!</div><div class="impegno-body"><div class="impegno-area">${area.nome}</div><div class="impegno-testo">${testo}</div></div>`;
+    impedRiep.appendChild(div);
+  });
+
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(document.getElementById('radarChart').getContext('2d'),{
+    type:'radar',
+    data:{
+      labels:aree.map(a=>a.nome),
+      datasets:[
+        {label:'Situazione attuale',data:aree.map(a=>punteggi[a.id]),backgroundColor:'rgba(45,106,79,.18)',borderColor:'rgba(45,106,79,.9)',borderWidth:2,pointBackgroundColor:'rgba(45,106,79,1)',pointRadius:4},
+        {label:'Con il cambiamento',data:aree.map(a=>Math.min(100,punteggi[a.id]+(miglioramenti[a.id]||0))),backgroundColor:'rgba(82,183,136,.10)',borderColor:'rgba(82,183,136,.9)',borderWidth:2,borderDash:[5,4],pointBackgroundColor:'rgba(82,183,136,1)',pointRadius:4}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,font:{size:10},color:'#aaa',backdropColor:'transparent'},grid:{color:'rgba(0,0,0,.07)'},angleLines:{color:'rgba(0,0,0,.07)'},pointLabels:{font:{size:13},color:'#3a3a38'}}}}
+  });
+}
+
+// ===== PDF =====
+async function scaricaPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,ml=18,mr=18,usable=W-ml-mr;
+  const verde=[45,106,79],verdeC=[82,183,136],verdePallido=[216,243,220],
+        sfondo=[245,240,232],testo=[28,28,26],muted=[107,107,103],arancio=[224,122,95],arancioLight=[253,238,234];
+  const oggi=new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // ── helper: aggiungi footer su pagina corrente ──
+  function addFooter(){
+    const pg=doc.internal.getCurrentPageInfo().pageNumber;
+    const tot=doc.internal.pages.length-1;
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...muted);
+    doc.text('La Ruota della Salute – Self Coaching',ml,289);
+    doc.text('Pagina '+pg+' di '+tot,W-mr,289,{align:'right'});
+    doc.setDrawColor(...muted);doc.setLineWidth(0.2);
+    doc.line(ml,284,W-mr,284);
+  }
+
+  // ── helper: nuova pagina con header sottile ──
+  function newPage(){
+    doc.addPage();
+    doc.setFillColor(...verde);doc.rect(0,0,W,10,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);
+    doc.text('La Ruota della Salute — Self Coaching',ml,7);
+    doc.setFont('helvetica','normal');doc.text(oggi,W-mr,7,{align:'right'});
+    return 20;
+  }
+
+  // ══════════════════════════════════════════════
+  // PAGINA 1 — COPERTINA + GRAFICO
+  // ══════════════════════════════════════════════
+  doc.setFillColor(...verde);
+  doc.rect(0,0,W,48,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(255,255,255);
+  doc.text('La Ruota della Salute',ml,22);
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(...verdePallido);
+  doc.text('Self Coaching — Il tuo report personale',ml,32);
+  doc.setFontSize(9);doc.text(oggi,W-mr,32,{align:'right'});
+
+  // Tagline
+  let y=58;
+  doc.setFillColor(...sfondo);doc.roundedRect(ml,y,usable,14,3,3,'F');
+  doc.setFont('helvetica','italic');doc.setFontSize(10);doc.setTextColor(...muted);
+  doc.text('La consapevolezza da sola non basta. Ma senza consapevolezza, il cambiamento non parte.',ml+6,y+9,{maxWidth:usable-12});
+  y+=22;
+
+  // Grafico radar grande
+  const canvas=document.getElementById('radarChart');
+  const imgData=canvas.toDataURL('image/png');
+  const sz=110;
+  doc.addImage(imgData,'PNG',(W-sz)/2,y,sz,sz);
+  y+=sz+6;
+
+  // Legenda grafico
+  const lx=(W-70)/2;
+  doc.setFillColor(...verde);doc.circle(lx,y,2,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...testo);
+  doc.text('Situazione attuale',lx+4,y+0.8);
+  doc.setFillColor(...verdeC);doc.circle(lx+40,y,2,'F');
+  doc.text('Con il cambiamento',lx+44,y+0.8);
+  y+=14;
+
+  // Tabella riepilogo punteggi
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(...testo);
+  doc.text('Riepilogo punteggi',ml,y);
+  y+=7;
+
+  // Header tabella
+  doc.setFillColor(...verde);doc.rect(ml,y,usable,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(255,255,255);
+  doc.text('#',ml+4,y+5.5);
+  doc.text('AREA',ml+12,y+5.5);
+  doc.text('OGGI',ml+100,y+5.5);
+  doc.text('OBIETTIVO',ml+118,y+5.5);
+  doc.text('MIGLIORAMENTO',ml+142,y+5.5);
+  y+=8;
+
+  aree.forEach((area,idx)=>{
+    const att=punteggi[area.id];
+    const fut=Math.min(100,att+(miglioramenti[area.id]||0));
+    const delta=fut-att;
+    const altR=9;
+    if(y+altR>278){addFooter();y=newPage();}
+    if(idx%2===0){doc.setFillColor(248,246,242);doc.rect(ml,y,usable,altR,'F');}
+    // rank badge
+    doc.setFillColor(...verde);doc.circle(ml+7,y+4.5,3.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(255,255,255);
+    doc.text(String(idx+1),ml+7,y+4.5+0.7,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...testo);
+    doc.text(area.nome,ml+12,y+6);
+    // barra progresso attuale
+    const barX=ml+93,barW=20,barH=4,barY=y+3;
+    doc.setFillColor(224,217,204);doc.roundedRect(barX,barY,barW,barH,1,1,'F');
+    doc.setFillColor(...arancio);doc.roundedRect(barX,barY,barW*(att/100),barH,1,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...arancio);
+    doc.text(String(att),ml+100,y+6,{align:'center'});
+    // futuro
+    doc.setTextColor(...verde);
+    doc.text(String(fut),ml+125,y+6,{align:'center'});
+    // delta
+    doc.setFontSize(8);
+    doc.text('+'+delta+' pt',ml+158,y+6,{align:'center'});
+    doc.setDrawColor(224,217,204);doc.line(ml,y+altR,ml+usable,y+altR);
+    y+=altR;
+  });
+
+  addFooter();
+
+  // ══════════════════════════════════════════════
+  // PAGINA 2+ — SCHEDA DETTAGLIO PER OGNI AREA
+  // ══════════════════════════════════════════════
+  y=newPage();
+
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...testo);
+  doc.text('I tuoi cambiamenti area per area',ml,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...muted);
+  doc.text('Per ciascuna area trovi il punteggio attuale, l\'obiettivo e il cambiamento concreto che hai identificato.',ml,y+7,{maxWidth:usable});
+  y+=20;
+
+  aree.forEach((area,idx)=>{
+    const att=punteggi[area.id];
+    const fut=Math.min(100,att+(miglioramenti[area.id]||0));
+    const delta=fut-att;
+    const camb=cambiamenti[area.id]||'Nessun cambiamento specificato.';
+
+    // calcola altezza scheda
+    const cambRighe=doc.splitTextToSize(camb,usable-14);
+    const cardH=Math.max(40, 14 + cambRighe.length*5.5 + 12);
+
+    if(y+cardH>278){addFooter();y=newPage();}
+
+    // sfondo scheda alternato
+    const bgCard=idx%2===0?[248,246,242]:[253,252,249];
+    doc.setFillColor(...bgCard);
+    doc.roundedRect(ml,y,usable,cardH,3,3,'F');
+    doc.setDrawColor(...verde);doc.setLineWidth(0.5);
+    doc.roundedRect(ml,y,4,cardH,1.5,1.5,'F'); // accent bar
+    doc.setLineWidth(0.2);
+
+    // numero area
+    doc.setFillColor(...verde);
+    doc.circle(ml+12,y+8,5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
+    doc.text(String(idx+1),ml+12,y+8+0.8,{align:'center'});
+
+    // nome area
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(...testo);
+    doc.text(area.nome,ml+20,y+10);
+
+    // punteggi inline
+    const px=W-mr-60;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...muted);
+    doc.text('Oggi',px,y+7);
+    doc.text('Obiettivo',px+20,y+7);
+    doc.text('Guadagno',px+42,y+7);
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...arancio);
+    doc.text(String(att),px+4,y+14,{align:'center'});
+    doc.setTextColor(...verde);
+    doc.text(String(fut),px+26,y+14,{align:'center'});
+    doc.setFontSize(10);
+    doc.text('+'+delta,px+50,y+14,{align:'center'});
+
+    // barra progresso
+    const bx=ml+8,bw=usable-16,bh=3,by=y+18;
+    doc.setFillColor(224,217,204);doc.roundedRect(bx,by,bw,bh,1,1,'F');
+    doc.setFillColor(...arancio);doc.roundedRect(bx,by,bw*(att/100),bh,1,1,'F');
+    doc.setFillColor(...verdeC);doc.roundedRect(bx+bw*(att/100),by,bw*(delta/100),bh,1,1,'F');
+
+    // separatore
+    doc.setDrawColor(224,217,204);doc.setLineWidth(0.3);
+    doc.line(ml+8,y+24,ml+usable-8,y+24);
+
+    // titolo cambiamento
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...verde);
+    doc.text('Cambiamento necessario:',ml+8,y+30);
+
+    // testo cambiamento
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...testo);
+    doc.text(cambRighe,ml+8,y+37);
+
+    y+=cardH+6;
+  });
+
+  // ══════════════════════════════════════════════
+  // PAGINA — PRIME AZIONI
+  // ══════════════════════════════════════════════
+  const azioniSelezionate=aree.filter(a=>azioniScelte[a.id]===true);
+  if(azioniSelezionate.length>0){
+    if(y+20>278){addFooter();y=newPage();}
+    else{y+=14;}
+
+    // titolo sezione
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...testo);
+    doc.text('Le tue prime azioni',ml,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...muted);
+    doc.text('I cambiamenti concreti da cui hai scelto di iniziare.',ml,y+7,{maxWidth:usable});
+    y+=18;
+
+    azioniSelezionate.forEach((area,idx)=>{
+      const camb=cambiamenti[area.id]||'';
+      const cambRighe=doc.splitTextToSize(camb,usable-26);
+      const cardH=Math.max(22, cambRighe.length*5.5+14);
+      if(y+cardH>278){addFooter();y=newPage();}
+
+      // sfondo card
+      doc.setFillColor(216,243,220);
+      doc.roundedRect(ml,y,usable,cardH,3,3,'F');
+
+      // numero cerchiato
+      doc.setFillColor(...verde);
+      doc.circle(ml+8,y+cardH/2,5,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
+      doc.text(String(idx+1),ml+8,y+cardH/2+0.8,{align:'center'});
+
+      // nome area
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...verde);
+      doc.text(area.nome,ml+18,y+8);
+
+      // testo azione
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...testo);
+      doc.text(cambRighe,ml+18,y+15);
+
+      y+=cardH+6;
+    });
+  }
+
+  // ══════════════════════════════════════════════
+  // PAGINA — COSA TI STA IMPEDENDO
+  // ══════════════════════════════════════════════
+  const areeConImpedimento=aree.filter(a=>azioniScelte[a.id]===true&&impedimenti[a.id]);
+  if(areeConImpedimento.length>0){
+    if(y+20>278){addFooter();y=newPage();}
+    else{y+=14;}
+
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...testo);
+    doc.text('E cosa ti sta impedendo di farlo?',ml,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...muted);
+    doc.text('Una riflessione onesta su ciò che ti blocca in ogni area che hai scelto.',ml,y+7,{maxWidth:usable});
+    y+=18;
+
+    areeConImpedimento.forEach((area,idx)=>{
+      const imp=impedimenti[area.id]||'';
+      const azione=cambiamenti[area.id]||'';
+      const impRighe=doc.splitTextToSize(imp,usable-26);
+      const azRighe=doc.splitTextToSize(azione,usable-26);
+      const cardH=Math.max(36, azRighe.length*4.5 + impRighe.length*5.5 + 26);
+      if(y+cardH>278){addFooter();y=newPage();}
+
+      // sfondo card arancio chiaro
+      doc.setFillColor(253,238,234);
+      doc.roundedRect(ml,y,usable,cardH,3,3,'F');
+
+      // accent bar arancio
+      doc.setFillColor(...arancio);
+      doc.roundedRect(ml,y,4,cardH,1.5,1.5,'F');
+
+      // numero
+      doc.setFillColor(...arancio);
+      doc.circle(ml+12,y+8,5,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);
+      doc.text('!',ml+12,y+8+0.8,{align:'center'});
+
+      // nome area
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...arancio);
+      doc.text(area.nome,ml+20,y+10);
+
+      // azione (piccola, in grigio)
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(...muted);
+      doc.text('Azione scelta: '+azione,ml+8,y+18,{maxWidth:usable-16});
+
+      // separatore
+      doc.setDrawColor(224,217,204);doc.setLineWidth(0.3);
+      doc.line(ml+8,y+22,ml+usable-8,y+22);
+
+      // impedimento
+      doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...arancio);
+      doc.text('Cosa mi sta impedendo:',ml+8,y+28);
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...testo);
+      doc.text(impRighe,ml+8,y+35);
+
+      y+=cardH+6;
+    });
+  }
+
+  // ══════════════════════════════════════════════
+  // DOMANDA POTENTE (chiude sempre il PDF)
+  // ══════════════════════════════════════════════
+  if(y+44>278){addFooter();y=newPage();}
+  else{y+=10;}
+  doc.setFillColor(...verde);
+  doc.roundedRect(ml,y,usable,36,3,3,'F');
+  doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(...verdePallido);
+  doc.text('LA DOMANDA POTENTE',ml+8,y+9);
+  doc.setFont('helvetica','bolditalic');doc.setFontSize(11);doc.setTextColor(255,255,255);
+  const dq='Visto che sai già i cambiamenti che dovresti fare in ogni area, perché non li hai fatti fino adesso?';
+  doc.text(doc.splitTextToSize(dq,usable-16),ml+8,y+18);
+
+  addFooter();
+  doc.save('La_Ruota_della_Salute_report.pdf');
+}
+
+// ===== EMAIL =====
+function apriModalEmail(){
+  document.getElementById('modal-email').classList.remove('hidden');
+  document.getElementById('modal-stato').textContent='';
+  document.getElementById('modal-stato').className='modal-stato';
+}
+function chiudiModalEmail(){ document.getElementById('modal-email').classList.add('hidden'); }
+
+async function inviaEmail(){
+  const mittente=document.getElementById('email-mittente').value.trim();
+  const nome=document.getElementById('email-nome').value.trim();
+  const messaggio=document.getElementById('email-messaggio').value.trim();
+  const stato=document.getElementById('modal-stato');
+  if(!mittente||!messaggio){stato.textContent='Compila almeno la tua email e il messaggio.';stato.className='modal-stato err';return;}
+  const btn=document.getElementById('btn-invia-email');
+  btn.disabled=true;btn.textContent='Invio in corso...';
+  const riepilogo=aree.map(a=>{
+    const att=punteggi[a.id],fut=Math.min(100,att+(miglioramenti[a.id]||0));
+    const azione=azioniScelte[a.id]?'★ AZIONE SCELTA':'';
+    const ostacolo=impedimenti[a.id]?'| Ostacolo: '+impedimenti[a.id]:'';
+    return a.nome+': '+att+' → '+fut+' | '+( cambiamenti[a.id]||'—')+' '+azione+' '+ostacolo;
+  }).join('\n');
+  try{
+    const res=await fetch(CONFIG.FORMSPREE_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        nome:nome||'Utente anonimo',
+        email:mittente,
+        messaggio:messaggio,
+        riepilogo_aree:riepilogo
+      })
+    });
+    if(res.ok){
+      stato.textContent='✓ Messaggio inviato! Riceverai risposta alla tua email.';
+      stato.className='modal-stato ok';
+      document.getElementById('email-messaggio').value='';
+    } else {
+      throw new Error('Errore server');
+    }
+  }catch(e){
+    stato.textContent="Errore nell'invio. Riprova tra qualche secondo.";
+    stato.className='modal-stato err';
+  }
+  btn.disabled=false;btn.textContent='Invia messaggio →';
+}
+
+// ===== NAVIGAZIONE =====
+function vaiAStep(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${n}`).classList.add('active');
+  for(let i=1;i<=7;i++){
+    const dot=document.getElementById(`step-dot-${i}`);
+    const circle=document.getElementById(`step-circle-${i}`);
+    if(!dot) continue;
+    dot.classList.remove('active','completed');
+    if(i<n){dot.classList.add('completed');circle.innerHTML='✓';}
+    else if(i===n){dot.classList.add('active');circle.innerHTML=i;}
+    else{circle.innerHTML=i;}
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function ricomincia(){
+  aree=[];punteggi={};punteggiMossi={};cambiamenti={};miglioramenti={};azioniScelte={};impedimenti={};nomeUtente='';
+  document.getElementById('login-nome').value='';
+  document.getElementById('login-input').value='';
+  document.getElementById('login-error').textContent='';
+  if(radarChart){radarChart.destroy();radarChart=null;}
+  initAree();vaiAStep(1);
+}
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('fetch',e=>{e.respondWith(caches.open('ruota-v2').then(c=>c.match(e.request).then(r=>{const n=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;});return r||n;})));});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+</script>
+
+
+</body>
+</html>
